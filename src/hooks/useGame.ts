@@ -95,6 +95,21 @@ export const useGame = () => {
     return Math.floor(baseDamage * variance);
   }, []);
 
+  const updateCooldowns = useCallback(() => {
+    setPlayer(prev => {
+      const updatedCooldowns = { ...prev.specialAttackCooldowns };
+      Object.keys(updatedCooldowns).forEach(attackId => {
+        if (updatedCooldowns[attackId] > 0) {
+          updatedCooldowns[attackId]--;
+        }
+      });
+      return {
+        ...prev,
+        specialAttackCooldowns: updatedCooldowns
+      };
+    });
+  }, []);
+
   const useItem = useCallback((itemName: string) => {
     const effect = itemEffects[itemName];
     if (!effect) return false;
@@ -353,10 +368,9 @@ export const useGame = () => {
       addBattleLog(`You rolled ${playerRoll} and deal ${damage} damage to ${currentMonster.name}!`, 'player');
 
       if (newMonsterHp <= 0) {
-        // Monster defeated
+        // Monster defeated logic
         addBattleLog(`${currentMonster.name} has been defeated!`, 'system');
         
-        // Gain experience and gold
         const expGained = currentMonster.experienceReward + (player.level * 5);
         const baseGold = Math.floor(Math.random() * 50) + 25;
         const luckBonus = Math.floor(baseGold * (player.luck * 0.03));
@@ -364,23 +378,6 @@ export const useGame = () => {
         
         addBattleLog(`You gained ${expGained} experience!`, 'system');
         addBattleLog(`You gained ${totalGold} gold!`, 'system');
-        
-        if (luckBonus > 0) {
-          addBattleLog(`Your luck gave you ${luckBonus} extra gold!`, 'system');
-        }
-
-        // Check for loot
-        const lootChance = 0.4 + (player.luck * 0.05);
-        if (Math.random() < lootChance) {
-          const lootItems = ['Small Potion', 'Medium Potion', 'Sharp Sword', 'Sturdy Armor'];
-          const loot = lootItems[Math.floor(Math.random() * lootItems.length)];
-          addBattleLog(`Your luck helped you find ${loot}!`, 'system');
-          
-          setPlayer(prev => ({
-            ...prev,
-            inventory: [...prev.inventory, loot]
-          }));
-        }
         
         setPlayer(prev => {
           const newExp = prev.experience + expGained;
@@ -392,7 +389,6 @@ export const useGame = () => {
           let newUnlockedAttacks = [...prev.unlockedSpecialAttacks];
           let newSpecialAttackNames: string[] = [];
           
-          // Check for level up
           if (newExp >= prev.experienceToNext) {
             newLevel++;
             newAvailablePoints += 3;
@@ -520,21 +516,6 @@ export const useGame = () => {
 
   const closeLevelUpAlert = useCallback(() => {
     setShowLevelUpAlert(false);
-  }, []);
-
-  const updateCooldowns = useCallback(() => {
-    setPlayer(prev => {
-      const updatedCooldowns = { ...prev.specialAttackCooldowns };
-      Object.keys(updatedCooldowns).forEach(attackId => {
-        if (updatedCooldowns[attackId] > 0) {
-          updatedCooldowns[attackId]--;
-        }
-      });
-      return {
-        ...prev,
-        specialAttackCooldowns: updatedCooldowns
-      };
-    });
   }, []);
 
   return {
