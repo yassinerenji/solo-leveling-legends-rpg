@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import MonsterCard from './MonsterCard';
 import PlayerStats from './PlayerStats';
-import { Heart, ShoppingCart, Package, Skull } from 'lucide-react';
+import { ShoppingCart, Package, Skull } from 'lucide-react';
 
 interface GameMenuProps {
   player: Player;
@@ -38,15 +38,6 @@ const GameMenu: React.FC<GameMenuProps> = ({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-4 justify-center">
-            <Button
-              onClick={onHeal}
-              variant="outline"
-              className="text-green-400 border-green-400 hover:bg-green-400/10"
-            >
-              <Heart className="w-4 h-4 mr-2" />
-              Rest & Recover
-            </Button>
-            
             <Button
               onClick={onGoToShop}
               variant="outline"

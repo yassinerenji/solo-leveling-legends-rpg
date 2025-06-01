@@ -4,7 +4,7 @@ import { Player } from '../types/game';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Heart, Zap, Trophy, Crown, Coins, Star, Zap as Lightning } from 'lucide-react';
+import { Heart, Trophy, Crown, Coins, Star, Zap as Lightning } from 'lucide-react';
 
 interface PlayerStatsProps {
   player: Player;
@@ -13,7 +13,6 @@ interface PlayerStatsProps {
 
 const PlayerStats: React.FC<PlayerStatsProps> = ({ player, onUpgradeStat }) => {
   const hpPercentage = (player.hp / player.maxHp) * 100;
-  const mpPercentage = (player.mp / player.maxMp) * 100;
   const expPercentage = (player.experience / player.experienceToNext) * 100;
 
   return (
@@ -47,22 +46,12 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ player, onUpgradeStat }) => {
         
         <Progress value={expPercentage} className="h-2" />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Heart className="w-4 h-4 text-red-400" />
-              <span>HP: {player.hp}/{player.maxHp}</span>
-            </div>
-            <Progress value={hpPercentage} className="h-2" />
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Heart className="w-4 h-4 text-red-400" />
+            <span>HP: {player.hp}/{player.maxHp}</span>
           </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-blue-400" />
-              <span>MP: {player.mp}/{player.maxMp}</span>
-            </div>
-            <Progress value={mpPercentage} className="h-2" />
-          </div>
+          <Progress value={hpPercentage} className="h-2" />
         </div>
 
         <div className="space-y-3">
@@ -82,7 +71,7 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ player, onUpgradeStat }) => {
                   <span className="capitalize text-sm flex items-center gap-1">
                     {stat === 'strength' && <Lightning className="w-3 h-3" />}
                     {stat === 'agility' && <Lightning className="w-3 h-3" />}
-                    {stat === 'intelligence' && <Zap className="w-3 h-3" />}
+                    {stat === 'intelligence' && <Lightning className="w-3 h-3" />}
                     {stat === 'vitality' && <Heart className="w-3 h-3" />}
                     {stat}
                   </span>
@@ -105,7 +94,7 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ player, onUpgradeStat }) => {
           <div className="text-sm text-gray-400 space-y-1">
             <p>• Strength: Increases attack damage</p>
             <p>• Agility: Increases dodge chance (5% per point)</p>
-            <p>• Intelligence: Increases MP and magic damage</p>
+            <p>• Intelligence: Increases magic damage</p>
             <p>• Vitality: Increases HP and defense</p>
             <p>• Luck: Increases gold and loot drops (5% per point)</p>
           </div>
