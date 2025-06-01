@@ -23,6 +23,20 @@ export interface Player {
   dungeonDepth: number;
   currentDungeon: Dungeon | null;
   luck: number;
+  equippedSpecialAttack: SpecialAttack | null;
+  unlockedSpecialAttacks: SpecialAttack[];
+  specialAttackCooldowns: Record<string, number>;
+}
+
+export interface SpecialAttack {
+  id: string;
+  name: string;
+  description: string;
+  mpCost: number;
+  damage: number;
+  cooldown: number;
+  unlockLevel: number;
+  animation?: string;
 }
 
 export interface Monster {
@@ -36,12 +50,13 @@ export interface Monster {
   experienceReward: number;
   description: string;
   type: 'beast' | 'undead' | 'demon' | 'dragon';
+  image?: string;
 }
 
 export interface BattleLog {
   id: string;
   message: string;
-  type: 'player' | 'monster' | 'system';
+  type: 'player' | 'monster' | 'system' | 'special';
   timestamp: number;
 }
 
@@ -69,4 +84,4 @@ export interface ItemEffect {
   teleport?: boolean;
 }
 
-export type GameState = 'menu' | 'battle' | 'victory' | 'defeat' | 'shop' | 'inventory' | 'dungeon';
+export type GameState = 'login' | 'menu' | 'battle' | 'victory' | 'defeat' | 'shop' | 'inventory' | 'dungeon' | 'specialAttacks' | 'upgradeStats' | 'levelUp';

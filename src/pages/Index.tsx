@@ -8,6 +8,10 @@ import DefeatScreen from '../components/DefeatScreen';
 import ShopScreen from '../components/ShopScreen';
 import InventoryScreen from '../components/InventoryScreen';
 import DungeonScreen from '../components/DungeonScreen';
+import LoginScreen from '../components/LoginScreen';
+import SpecialAttacksScreen from '../components/SpecialAttacksScreen';
+import UpgradeStatsScreen from '../components/UpgradeStatsScreen';
+import LevelUpAlert from '../components/LevelUpAlert';
 
 const Index = () => {
   const {
@@ -15,8 +19,12 @@ const Index = () => {
     currentMonster,
     battleLogs,
     gameState,
+    showLevelUpAlert,
+    levelUpData,
+    isRollingDice,
     startBattle,
     playerAttack,
+    useSpecialAttack,
     upgradeStats,
     resetBattle,
     healPlayer,
@@ -27,11 +35,18 @@ const Index = () => {
     dungeonBattle,
     goToShop,
     goToInventory,
-    goToMenu
+    goToMenu,
+    goToSpecialAttacks,
+    goToUpgradeStats,
+    handleLogin,
+    equipSpecialAttack,
+    closeLevelUpAlert
   } = useGame();
 
   const renderGameState = () => {
     switch (gameState) {
+      case 'login':
+        return <LoginScreen onLogin={handleLogin} />;
       case 'battle':
         return currentMonster ? (
           <BattleScreen
@@ -39,8 +54,10 @@ const Index = () => {
             monster={currentMonster}
             battleLogs={battleLogs}
             onAttack={playerAttack}
+            onUseSpecialAttack={useSpecialAttack}
             onFlee={resetBattle}
             gameState={gameState}
+            isRollingDice={isRollingDice}
           />
         ) : null;
       case 'victory':
@@ -66,13 +83,28 @@ const Index = () => {
             onBack={goToMenu}
           />
         );
+      case 'specialAttacks':
+        return (
+          <SpecialAttacksScreen
+            player={player}
+            onBack={goToMenu}
+            onEquipSpecialAttack={equipSpecialAttack}
+          />
+        );
+      case 'upgradeStats':
+        return (
+          <UpgradeStatsScreen
+            player={player}
+            onBack={goToMenu}
+            onUpgradeStat={upgradeStats}
+          />
+        );
       case 'dungeon':
         return player.currentDungeon ? (
           <DungeonScreen
             player={player}
             dungeon={player.currentDungeon}
             onContinueDeeper={() => {
-              // Implement going deeper logic
               dungeonBattle();
             }}
             onOpenInventory={goToInventory}
@@ -89,6 +121,8 @@ const Index = () => {
             onHeal={healPlayer}
             onGoToShop={goToShop}
             onGoToInventory={goToInventory}
+            onGoToSpecialAttacks={goToSpecialAttacks}
+            onGoToUpgradeStats={goToUpgradeStats}
             onEnterDungeon={enterDungeon}
           />
         );
@@ -99,6 +133,14 @@ const Index = () => {
     <div className="min-h-screen p-4">
       <div className="max-w-6xl mx-auto">
         {renderGameState()}
+        {showLevelUpAlert && (
+          <LevelUpAlert
+            newLevel={levelUpData.newLevel}
+            availablePoints={levelUpData.availablePoints}
+            newSpecialAttacks={levelUpData.newSpecialAttacks}
+            onContinue={closeLevelUpAlert}
+          />
+        )}
       </div>
     </div>
   );

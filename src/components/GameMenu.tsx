@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import MonsterCard from './MonsterCard';
 import PlayerStats from './PlayerStats';
-import { ShoppingCart, Package, Skull } from 'lucide-react';
+import { ShoppingCart, Package, Skull, Zap, Star } from 'lucide-react';
 
 interface GameMenuProps {
   player: Player;
@@ -15,6 +15,8 @@ interface GameMenuProps {
   onHeal: () => void;
   onGoToShop: () => void;
   onGoToInventory: () => void;
+  onGoToSpecialAttacks: () => void;
+  onGoToUpgradeStats: () => void;
   onEnterDungeon: (difficulty: 'E' | 'D' | 'C' | 'B' | 'A' | 'S') => void;
 }
 
@@ -26,6 +28,8 @@ const GameMenu: React.FC<GameMenuProps> = ({
   onHeal,
   onGoToShop,
   onGoToInventory,
+  onGoToSpecialAttacks,
+  onGoToUpgradeStats,
   onEnterDungeon,
 }) => {
   return (
@@ -54,6 +58,25 @@ const GameMenu: React.FC<GameMenuProps> = ({
             >
               <Package className="w-4 h-4 mr-2" />
               Inventory ({player.inventory.length})
+            </Button>
+
+            <Button
+              onClick={onGoToSpecialAttacks}
+              variant="outline"
+              className="text-blue-400 border-blue-400 hover:bg-blue-400/10"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Special Attacks
+            </Button>
+
+            <Button
+              onClick={onGoToUpgradeStats}
+              variant="outline"
+              className="text-green-400 border-green-400 hover:bg-green-400/10"
+              disabled={player.availablePoints <= 0}
+            >
+              <Star className="w-4 h-4 mr-2" />
+              Upgrade Stats {player.availablePoints > 0 && `(${player.availablePoints})`}
             </Button>
           </div>
         </CardContent>
