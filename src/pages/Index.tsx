@@ -5,13 +5,15 @@ import GameMenu from '../components/GameMenu';
 import BattleScreen from '../components/BattleScreen';
 import VictoryScreen from '../components/VictoryScreen';
 import DefeatScreen from '../components/DefeatScreen';
+import ShopScreen from '../components/ShopScreen';
+import InventoryScreen from '../components/InventoryScreen';
+import DungeonScreen from '../components/DungeonScreen';
 
 const Index = () => {
   const {
     player,
     currentMonster,
     battleLogs,
-    isInBattle,
     gameState,
     startBattle,
     playerAttack,
@@ -19,6 +21,13 @@ const Index = () => {
     resetBattle,
     healPlayer,
     monsters,
+    useItem,
+    buyItem,
+    enterDungeon,
+    dungeonBattle,
+    goToShop,
+    goToInventory,
+    goToMenu
   } = useGame();
 
   const renderGameState = () => {
@@ -41,6 +50,35 @@ const Index = () => {
           healPlayer();
           resetBattle();
         }} />;
+      case 'shop':
+        return (
+          <ShopScreen
+            player={player}
+            onBuyItem={buyItem}
+            onBack={goToMenu}
+          />
+        );
+      case 'inventory':
+        return (
+          <InventoryScreen
+            player={player}
+            onUseItem={useItem}
+            onBack={goToMenu}
+          />
+        );
+      case 'dungeon':
+        return player.currentDungeon ? (
+          <DungeonScreen
+            player={player}
+            dungeon={player.currentDungeon}
+            onContinueDeeper={() => {
+              // Implement going deeper logic
+              dungeonBattle();
+            }}
+            onOpenInventory={goToInventory}
+            onBattle={dungeonBattle}
+          />
+        ) : null;
       default:
         return (
           <GameMenu
@@ -49,6 +87,9 @@ const Index = () => {
             onStartBattle={startBattle}
             onUpgradeStat={upgradeStats}
             onHeal={healPlayer}
+            onGoToShop={goToShop}
+            onGoToInventory={goToInventory}
+            onEnterDungeon={enterDungeon}
           />
         );
     }

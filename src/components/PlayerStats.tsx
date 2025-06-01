@@ -4,7 +4,7 @@ import { Player } from '../types/game';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Heart, Zap, Trophy, Crown } from 'lucide-react';
+import { Heart, Zap, Trophy, Crown, Coins, Star, Zap as Lightning } from 'lucide-react';
 
 interface PlayerStatsProps {
   player: Player;
@@ -19,10 +19,22 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ player, onUpgradeStat }) => {
   return (
     <Card className="battle-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 glow-text">
-          <Crown className="w-6 h-6 text-purple-400" />
-          {player.name} - {player.rank}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 glow-text">
+            <Crown className="w-6 h-6 text-purple-400" />
+            {player.name} - {player.rank}
+          </CardTitle>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Coins className="w-5 h-5 text-yellow-400" />
+              <span className="text-yellow-400 font-bold">{player.gold}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-purple-400" />
+              <span className="text-purple-400">Luck: {player.luck}</span>
+            </div>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
@@ -67,7 +79,13 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ player, onUpgradeStat }) => {
             {Object.entries(player.stats).map(([stat, value]) => (
               <div key={stat} className="flex items-center justify-between p-2 bg-gray-800/50 rounded">
                 <div>
-                  <span className="capitalize text-sm">{stat}</span>
+                  <span className="capitalize text-sm flex items-center gap-1">
+                    {stat === 'strength' && <Lightning className="w-3 h-3" />}
+                    {stat === 'agility' && <Lightning className="w-3 h-3" />}
+                    {stat === 'intelligence' && <Zap className="w-3 h-3" />}
+                    {stat === 'vitality' && <Heart className="w-3 h-3" />}
+                    {stat}
+                  </span>
                   <div className="text-lg font-bold text-purple-300">{value}</div>
                 </div>
                 {player.availablePoints > 0 && (
@@ -82,6 +100,14 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ player, onUpgradeStat }) => {
                 )}
               </div>
             ))}
+          </div>
+          
+          <div className="text-sm text-gray-400 space-y-1">
+            <p>• Strength: Increases attack damage</p>
+            <p>• Agility: Increases dodge chance (5% per point)</p>
+            <p>• Intelligence: Increases MP and magic damage</p>
+            <p>• Vitality: Increases HP and defense</p>
+            <p>• Luck: Increases gold and loot drops (5% per point)</p>
           </div>
         </div>
       </CardContent>
