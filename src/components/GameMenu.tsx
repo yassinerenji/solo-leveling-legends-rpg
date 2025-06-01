@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Monster, Player } from '../types/game';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import MonsterCard from './MonsterCard';
+import { Button } from '@/components/ui/button';
+import { Player, Monster } from '../types/game';
 import PlayerStats from './PlayerStats';
-import { ShoppingCart, Package, Skull, Zap, Star } from 'lucide-react';
+import MonsterCard from './MonsterCard';
+import { Sword, ShoppingCart, Package, Zap, TrendingUp, Skull, Save } from 'lucide-react';
 
 interface GameMenuProps {
   player: Player;
@@ -18,6 +18,7 @@ interface GameMenuProps {
   onGoToSpecialAttacks: () => void;
   onGoToUpgradeStats: () => void;
   onEnterDungeon: (difficulty: 'E' | 'D' | 'C' | 'B' | 'A' | 'S') => void;
+  onSaveGame: () => void;
 }
 
 const GameMenu: React.FC<GameMenuProps> = ({
@@ -31,145 +32,125 @@ const GameMenu: React.FC<GameMenuProps> = ({
   onGoToSpecialAttacks,
   onGoToUpgradeStats,
   onEnterDungeon,
+  onSaveGame,
 }) => {
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <Card className="battle-card text-center">
+      <PlayerStats player={player} />
+      
+      {/* Main Actions */}
+      <Card className="battle-card">
         <CardHeader>
-          <CardTitle className="text-4xl glow-text">Solo Leveling RPG</CardTitle>
-          <p className="text-gray-300">Rise from E-Rank to become the strongest hunter</p>
+          <CardTitle>Actions</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button
-              onClick={onGoToShop}
-              variant="outline"
-              className="text-yellow-400 border-yellow-400 hover:bg-yellow-400/10"
-            >
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Button onClick={onGoToShop} className="bg-green-600 hover:bg-green-700">
               <ShoppingCart className="w-4 h-4 mr-2" />
               Shop
             </Button>
-            
-            <Button
-              onClick={onGoToInventory}
-              variant="outline"
-              className="text-purple-400 border-purple-400 hover:bg-purple-400/10"
-            >
+            <Button onClick={onGoToInventory} className="bg-purple-600 hover:bg-purple-700">
               <Package className="w-4 h-4 mr-2" />
-              Inventory ({player.inventory.length})
+              Inventory
             </Button>
-
-            <Button
-              onClick={onGoToSpecialAttacks}
-              variant="outline"
-              className="text-blue-400 border-blue-400 hover:bg-blue-400/10"
-            >
+            <Button onClick={onGoToSpecialAttacks} className="bg-indigo-600 hover:bg-indigo-700">
               <Zap className="w-4 h-4 mr-2" />
               Special Attacks
             </Button>
-
-            <Button
-              onClick={onGoToUpgradeStats}
-              variant="outline"
-              className="text-green-400 border-green-400 hover:bg-green-400/10"
-              disabled={player.availablePoints <= 0}
-            >
-              <Star className="w-4 h-4 mr-2" />
-              Upgrade Stats {player.availablePoints > 0 && `(${player.availablePoints})`}
+            <Button onClick={onGoToUpgradeStats} className="bg-orange-600 hover:bg-orange-700">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Upgrade Stats
+            </Button>
+          </div>
+          <div className="mt-4 flex justify-center">
+            <Button onClick={onSaveGame} variant="outline" className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Save className="w-4 h-4 mr-2" />
+              Save Game
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Player Stats */}
-      <PlayerStats player={player} onUpgradeStat={onUpgradeStat} />
-
-      {/* Hunting Locations */}
-      <Card className="battle-card">
-        <CardHeader>
-          <CardTitle>Choose Your Hunt</CardTitle>
-          <p className="text-sm text-gray-300">Select a location to hunt monsters</p>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button
-              onClick={() => onStartBattle('forest')}
-              className="bg-green-600 hover:bg-green-700 h-20"
-              disabled={player.hp <= 0}
-            >
-              <div className="text-center">
-                <div className="text-lg">🌲 Forest</div>
-                <div className="text-sm opacity-75">Easy</div>
-              </div>
-            </Button>
-            
-            <Button
-              onClick={() => onStartBattle('dungeon')}
-              className="bg-gray-600 hover:bg-gray-700 h-20"
-              disabled={player.hp <= 0}
-            >
-              <div className="text-center">
-                <div className="text-lg">🏛️ Dungeon</div>
-                <div className="text-sm opacity-75">Medium</div>
-              </div>
-            </Button>
-            
-            <Button
-              onClick={() => onStartBattle('beach')}
-              className="bg-blue-600 hover:bg-blue-700 h-20"
-              disabled={player.hp <= 0}
-            >
-              <div className="text-center">
-                <div className="text-lg">🏖️ Beach</div>
-                <div className="text-sm opacity-75">Hard</div>
-              </div>
-            </Button>
-            
-            <Button
-              onClick={() => onStartBattle('mountain')}
-              className="bg-red-600 hover:bg-red-700 h-20"
-              disabled={player.hp <= 0}
-            >
-              <div className="text-center">
-                <div className="text-lg">⛰️ Mountain</div>
-                <div className="text-sm opacity-75">Very Hard</div>
-              </div>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Dungeon Gates */}
+      {/* Hunting Grounds */}
       <Card className="battle-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Skull className="w-6 h-6 text-red-400" />
-            Dungeon Gates
+            <Sword className="w-5 h-5 text-red-400" />
+            Hunting Grounds
           </CardTitle>
-          <p className="text-sm text-gray-300">Enter dangerous dungeons for greater rewards</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button
+              onClick={() => onStartBattle('forest')}
+              className="bg-green-700 hover:bg-green-800 h-16"
+            >
+              Forest (Easy)
+            </Button>
+            <Button
+              onClick={() => onStartBattle('cave')}
+              className="bg-gray-700 hover:bg-gray-800 h-16"
+            >
+              Cave (Medium)
+            </Button>
+            <Button
+              onClick={() => onStartBattle('mountain')}
+              className="bg-red-700 hover:bg-red-800 h-16"
+            >
+              Mountain (Hard)
+            </Button>
+            <Button
+              onClick={() => onStartBattle('desert')}
+              className="bg-yellow-700 hover:bg-yellow-800 h-16"
+            >
+              Desert (Very Hard)
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Dungeons */}
+      <Card className="battle-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Skull className="w-5 h-5 text-red-400" />
+            Dungeons
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {(['E', 'D', 'C', 'B', 'A', 'S'] as const).map((difficulty) => (
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+            {(['E', 'D', 'C', 'B', 'A', 'S'] as const).map((rank) => (
               <Button
-                key={difficulty}
-                onClick={() => onEnterDungeon(difficulty)}
+                key={rank}
+                onClick={() => onEnterDungeon(rank)}
                 className={`h-16 ${
-                  difficulty === 'E' ? 'bg-gray-600 hover:bg-gray-700' :
-                  difficulty === 'D' ? 'bg-green-600 hover:bg-green-700' :
-                  difficulty === 'C' ? 'bg-blue-600 hover:bg-blue-700' :
-                  difficulty === 'B' ? 'bg-purple-600 hover:bg-purple-700' :
-                  difficulty === 'A' ? 'bg-orange-600 hover:bg-orange-700' :
-                  'bg-red-600 hover:bg-red-700'
+                  rank === 'E' ? 'bg-gray-600 hover:bg-gray-700' :
+                  rank === 'D' ? 'bg-green-600 hover:bg-green-700' :
+                  rank === 'C' ? 'bg-blue-600 hover:bg-blue-700' :
+                  rank === 'B' ? 'bg-purple-600 hover:bg-purple-700' :
+                  rank === 'A' ? 'bg-red-600 hover:bg-red-700' :
+                  'bg-yellow-600 hover:bg-yellow-700'
                 }`}
-                disabled={player.hp <= 0}
               >
                 <div className="text-center">
-                  <div className="text-xl font-bold">{difficulty}</div>
-                  <div className="text-xs opacity-75">Rank</div>
+                  <div className="font-bold text-lg">{rank}</div>
+                  <div className="text-xs">Rank</div>
                 </div>
               </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Available Monsters */}
+      <Card className="battle-card">
+        <CardHeader>
+          <CardTitle>Known Monsters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {monsters.slice(0, 6).map((monster) => (
+              <MonsterCard key={monster.id} monster={monster} />
             ))}
           </div>
         </CardContent>

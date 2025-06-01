@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Player, Monster, BattleLog } from '../types/game';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Sword, Heart, ArrowLeft, Zap, Dice6 } from 'lucide-react';
+import { Sword, Heart, ArrowLeft, Zap, Dice6, Package } from 'lucide-react';
+import { itemEffects } from '../data/gameData';
 
 interface BattleScreenProps {
   player: Player;
@@ -13,6 +14,7 @@ interface BattleScreenProps {
   onAttack: () => void;
   onUseSpecialAttack?: () => void;
   onFlee: () => void;
+  onUseItem: (item: string) => void;
   gameState: string;
   isRollingDice?: boolean;
 }
@@ -24,9 +26,12 @@ const BattleScreen: React.FC<BattleScreenProps> = ({
   onAttack,
   onUseSpecialAttack,
   onFlee,
+  onUseItem,
   gameState,
   isRollingDice = false,
 }) => {
+  const [showInventory, setShowInventory] = useState(false);
+  
   const playerHpPercentage = (player.hp / player.maxHp) * 100;
   const playerMpPercentage = (player.mp / player.maxMp) * 100;
   const monsterHpPercentage = (monster.hp / monster.maxHp) * 100;
@@ -34,6 +39,24 @@ const BattleScreen: React.FC<BattleScreenProps> = ({
   const canUseSpecialAttack = player.equippedSpecialAttack && 
     player.mp >= player.equippedSpecialAttack.mpCost &&
     (player.specialAttackCooldowns[player.equippedSpecialAttack.id] || 0) === 0;
+
+  const getItemDescription = (item: string) => {
+    const effect = itemEffects[item];
+    if (!effect) return 'Unknown item';
+    
+    if (effect.heal) return `Restores ${effect.heal} HP`;
+    if (effect.attack) return `+${effect.attack} Attack permanently`;
+    if (effect.defense) return `+${effect.defense} Defense permanently`;
+    if (effect.luck) return `+${effect.luck} Luck permanently`;
+    if (effect.agility) return `+${effect.agility} Agility permanently`;
+    if (effect.teleport) return 'Escape from dungeons instantly';
+    return 'Unknown effect';
+  };
+
+  const handleUseItem = (item: string) => {
+    onUseItem(item);
+    setShowInventory(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -131,6 +154,16 @@ const BattleScreen: React.FC<BattleScreenProps> = ({
             )}
             
             <Button
+              onClick={() => setShowInventory(!showInventory)}
+              disabled={isRollingDice}
+              className="bg-green-600 hover:bg-green-700 text-white"
+              size="lg"
+            >
+              <Package className="w-4 h-4 mr-2" />
+              Items
+            </Button>
+            
+            <Button
               onClick={onFlee}
               variant="outline"
               size="lg"
@@ -142,6 +175,40 @@ const BattleScreen: React.FC<BattleScreenProps> = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Battle Inventory */}
+      {showInventory && (
+        <Card className="battle-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="w-5 h-5 text-green-400" />
+              Battle Items
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {player.inventory.length === 0 ? (
+              <p className="text-gray-400 text-center">No items available!</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {player.inventory.map((item, index) => (
+                  <div key={index} className="p-3 bg-gray-800/50 rounded-lg border border-green-400/20">
+                    <h4 className="font-medium text-green-300 text-sm">{item}</h4>
+                    <p className="text-xs text-gray-400 mb-2">{getItemDescription(item)}</p>
+                    <Button
+                      onClick={() => handleUseItem(item)}
+                      size="sm"
+                      className="w-full bg-green-600 hover:bg-green-700 text-xs"
+                      disabled={isRollingDice}
+                    >
+                      Use
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Battle Log */}
       <Card className="battle-card">

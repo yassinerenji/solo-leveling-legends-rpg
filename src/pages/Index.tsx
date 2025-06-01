@@ -12,6 +12,8 @@ import LoginScreen from '../components/LoginScreen';
 import SpecialAttacksScreen from '../components/SpecialAttacksScreen';
 import UpgradeStatsScreen from '../components/UpgradeStatsScreen';
 import LevelUpAlert from '../components/LevelUpAlert';
+import BattleCompleteScreen from '../components/BattleCompleteScreen';
+import DungeonEntranceDialog from '../components/DungeonEntranceDialog';
 
 const Index = () => {
   const {
@@ -22,6 +24,9 @@ const Index = () => {
     showLevelUpAlert,
     levelUpData,
     isRollingDice,
+    showDungeonDialog,
+    selectedDungeon,
+    battleComplete,
     startBattle,
     playerAttack,
     useSpecialAttack,
@@ -32,6 +37,8 @@ const Index = () => {
     useItem,
     buyItem,
     enterDungeon,
+    acceptDungeon,
+    refuseDungeon,
     dungeonBattle,
     goToShop,
     goToInventory,
@@ -40,7 +47,9 @@ const Index = () => {
     goToUpgradeStats,
     handleLogin,
     equipSpecialAttack,
-    closeLevelUpAlert
+    closeLevelUpAlert,
+    closeBattleComplete,
+    saveGame
   } = useGame();
 
   const renderGameState = () => {
@@ -56,6 +65,7 @@ const Index = () => {
             onAttack={playerAttack}
             onUseSpecialAttack={useSpecialAttack}
             onFlee={resetBattle}
+            onUseItem={useItem}
             gameState={gameState}
             isRollingDice={isRollingDice}
           />
@@ -124,6 +134,7 @@ const Index = () => {
             onGoToSpecialAttacks={goToSpecialAttacks}
             onGoToUpgradeStats={goToUpgradeStats}
             onEnterDungeon={enterDungeon}
+            onSaveGame={saveGame}
           />
         );
     }
@@ -133,6 +144,7 @@ const Index = () => {
     <div className="min-h-screen p-4">
       <div className="max-w-6xl mx-auto">
         {renderGameState()}
+        
         {showLevelUpAlert && (
           <LevelUpAlert
             newLevel={levelUpData.newLevel}
@@ -141,6 +153,23 @@ const Index = () => {
             onContinue={closeLevelUpAlert}
           />
         )}
+        
+        {battleComplete.show && (
+          <BattleCompleteScreen
+            experienceGained={battleComplete.exp}
+            goldGained={battleComplete.gold}
+            onContinue={closeBattleComplete}
+          />
+        )}
+        
+        <DungeonEntranceDialog
+          isOpen={showDungeonDialog}
+          onClose={refuseDungeon}
+          dungeon={selectedDungeon?.dungeon || null}
+          difficulty={selectedDungeon?.difficulty || 'E'}
+          onAccept={acceptDungeon}
+          onRefuse={refuseDungeon}
+        />
       </div>
     </div>
   );

@@ -40,6 +40,10 @@ export const useGame = () => {
   const [showLevelUpAlert, setShowLevelUpAlert] = useState(false);
   const [levelUpData, setLevelUpData] = useState<{ newLevel: number; availablePoints: number; newSpecialAttacks: string[] }>({ newLevel: 1, availablePoints: 0, newSpecialAttacks: [] });
   const [isRollingDice, setIsRollingDice] = useState(false);
+  const [showDungeonDialog, setShowDungeonDialog] = useState(false);
+  const [selectedDungeon, setSelectedDungeon] = useState<{ difficulty: 'E' | 'D' | 'C' | 'B' | 'A' | 'S', dungeon: Dungeon } | null>(null);
+  const [battleComplete, setBattleComplete] = useState<{ show: boolean; exp: number; gold: number }>({ show: false, exp: 0, gold: 0 });
+  const [isPlayerTurn, setIsPlayerTurn] = useState(true);
 
   // Load saved game data
   useEffect(() => {
@@ -56,6 +60,11 @@ export const useGame = () => {
       localStorage.setItem('soloLevelingPlayer', JSON.stringify(player));
     }
   }, [player, gameState]);
+
+  const saveGame = useCallback(() => {
+    localStorage.setItem('soloLevelingPlayer', JSON.stringify(player));
+    addBattleLog('Game saved successfully!', 'system');
+  }, [player]);
 
   const handleLogin = useCallback((playerName: string, isReturning: boolean) => {
     if (isReturning) {
@@ -174,6 +183,7 @@ export const useGame = () => {
     setCurrentMonster(monsterCopy);
     setGameState('battle');
     setBattleLogs([]);
+    setIsPlayerTurn(true);
     addBattleLog(`A wild ${monster.name} appears!`, 'system');
   }, [addBattleLog]);
 
@@ -181,20 +191,33 @@ export const useGame = () => {
     const dungeon = dungeons[difficulty];
     if (!dungeon) return;
 
+    setSelectedDungeon({ difficulty, dungeon });
+    setShowDungeonDialog(true);
+  }, []);
+
+  const acceptDungeon = useCallback(() => {
+    if (!selectedDungeon) return;
+
     setPlayer(prev => ({
       ...prev,
-      currentDungeon: dungeon,
+      currentDungeon: selectedDungeon.dungeon,
       dungeonDepth: 1,
-      location: `dungeon_${difficulty}`
+      location: `dungeon_${selectedDungeon.difficulty}`
     }));
     setGameState('dungeon');
-    addBattleLog(`Entered ${difficulty}-rank dungeon!`, 'system');
-  }, [addBattleLog]);
+    setShowDungeonDialog(false);
+    setSelectedDungeon(null);
+    addBattleLog(`Entered ${selectedDungeon.difficulty}-rank dungeon!`, 'system');
+  }, [selectedDungeon, addBattleLog]);
+
+  const refuseDungeon = useCallback(() => {
+    setShowDungeonDialog(false);
+    setSelectedDungeon(null);
+  }, []);
 
   const dungeonBattle = useCallback(() => {
     if (!player.currentDungeon) return;
 
-    // Create a dungeon enemy
     const enemyName = player.currentDungeon.enemies[Math.floor(Math.random() * player.currentDungeon.enemies.length)];
     const difficultyMultiplier = (player.currentDungeon.difficulty.charCodeAt(0) - 'A'.charCodeAt(0) + 1) * 0.5;
     
@@ -214,6 +237,7 @@ export const useGame = () => {
     setCurrentMonster(dungeonMonster);
     setGameState('battle');
     setBattleLogs([]);
+    setIsPlayerTurn(true);
     addBattleLog(`You encounter a ${enemyName} in the dungeon!`, 'system');
   }, [player.currentDungeon, player.level, addBattleLog]);
 
@@ -224,8 +248,58 @@ export const useGame = () => {
     }));
   }, []);
 
+  const handleBattleVictory = useCallback((expGained: number, goldGained: number) => {
+    setBattleComplete({ show: true, exp: expGained, gold: goldGained });
+    
+    setPlayer(prev => {
+      const newExp = prev.experience + expGained;
+      let newLevel = prev.level;
+      let newExpToNext = prev.experienceToNext;
+      let newAvailablePoints = prev.availablePoints;
+      let newMaxHp = prev.maxHp;
+      let newMaxMp = prev.maxMp;
+      let newUnlockedAttacks = [...prev.unlockedSpecialAttacks];
+      let newSpecialAttackNames: string[] = [];
+      
+      if (newExp >= prev.experienceToNext) {
+        newLevel++;
+        newAvailablePoints += 3;
+        newMaxHp += 20 + (prev.stats.vitality * 10);
+        newMaxMp += 10 + (prev.stats.intelligence * 5);
+        newExpToNext = newLevel * 100;
+        
+        const availableAttacks = specialAttacks.filter(attack => 
+          attack.unlockLevel === newLevel && 
+          !newUnlockedAttacks.find(ua => ua.id === attack.id)
+        );
+        
+        if (availableAttacks.length > 0) {
+          newUnlockedAttacks = [...newUnlockedAttacks, ...availableAttacks];
+          newSpecialAttackNames = availableAttacks.map(a => a.name);
+        }
+        
+        setLevelUpData({ newLevel, availablePoints: 3, newSpecialAttacks: newSpecialAttackNames });
+        setShowLevelUpAlert(true);
+      }
+      
+      return {
+        ...prev,
+        experience: newExp,
+        level: newLevel,
+        experienceToNext: newExpToNext,
+        availablePoints: newAvailablePoints,
+        maxHp: newMaxHp,
+        maxMp: newMaxMp,
+        hp: newMaxHp,
+        mp: newMaxMp,
+        gold: prev.gold + goldGained,
+        unlockedSpecialAttacks: newUnlockedAttacks
+      };
+    });
+  }, []);
+
   const useSpecialAttack = useCallback(() => {
-    if (!currentMonster || !player.equippedSpecialAttack || gameState !== 'battle') return;
+    if (!currentMonster || !player.equippedSpecialAttack || gameState !== 'battle' || !isPlayerTurn) return;
     
     const attack = player.equippedSpecialAttack;
     const cooldownRemaining = player.specialAttackCooldowns[attack.id] || 0;
@@ -240,7 +314,9 @@ export const useGame = () => {
       return;
     }
 
+    setIsPlayerTurn(false);
     setIsRollingDice(true);
+    
     setTimeout(() => {
       setIsRollingDice(false);
       
@@ -260,101 +336,55 @@ export const useGame = () => {
       addBattleLog(`${attack.animation} Used ${attack.name} and dealt ${damage} damage!`, 'special');
       
       if (newMonsterHp <= 0) {
-        // Monster defeated logic
-        addBattleLog(`${currentMonster.name} has been defeated!`, 'system');
-        
         const expGained = currentMonster.experienceReward + (player.level * 5);
         const baseGold = Math.floor(Math.random() * 50) + 25;
         const luckBonus = Math.floor(baseGold * (player.luck * 0.03));
         const totalGold = baseGold + luckBonus;
         
-        addBattleLog(`You gained ${expGained} experience!`, 'system');
-        addBattleLog(`You gained ${totalGold} gold!`, 'system');
-        
-        setPlayer(prev => {
-          const newExp = prev.experience + expGained;
-          let newLevel = prev.level;
-          let newExpToNext = prev.experienceToNext;
-          let newAvailablePoints = prev.availablePoints;
-          let newMaxHp = prev.maxHp;
-          let newMaxMp = prev.maxMp;
-          let newUnlockedAttacks = [...prev.unlockedSpecialAttacks];
-          let newSpecialAttackNames: string[] = [];
-          
-          if (newExp >= prev.experienceToNext) {
-            newLevel++;
-            newAvailablePoints += 3;
-            newMaxHp += 20 + (prev.stats.vitality * 10);
-            newMaxMp += 10 + (prev.stats.intelligence * 5);
-            newExpToNext = newLevel * 100;
-            
-            // Check for new special attacks
-            const availableAttacks = specialAttacks.filter(attack => 
-              attack.unlockLevel === newLevel && 
-              !newUnlockedAttacks.find(ua => ua.id === attack.id)
-            );
-            
-            if (availableAttacks.length > 0) {
-              newUnlockedAttacks = [...newUnlockedAttacks, ...availableAttacks];
-              newSpecialAttackNames = availableAttacks.map(a => a.name);
-            }
-            
-            setLevelUpData({ newLevel, availablePoints: 3, newSpecialAttacks: newSpecialAttackNames });
-            setShowLevelUpAlert(true);
-          }
-          
-          return {
-            ...prev,
-            experience: newExp,
-            level: newLevel,
-            experienceToNext: newExpToNext,
-            availablePoints: newAvailablePoints,
-            maxHp: newMaxHp,
-            maxMp: newMaxMp,
-            gold: prev.gold + totalGold,
-            unlockedSpecialAttacks: newUnlockedAttacks
-          };
-        });
-        
-        setTimeout(() => {
-          if (player.currentDungeon) {
-            setGameState('dungeon');
-          } else {
-            setGameState('victory');
-          }
-        }, 2000);
+        handleBattleVictory(expGained, totalGold);
         return;
       }
       
-      // Monster's turn after delay
+      // Monster's turn
       setTimeout(() => {
-        const dodgeChance = Math.min(0.3, player.stats.agility * 0.02);
-        if (Math.random() < dodgeChance) {
-          addBattleLog(`With your agility (${player.stats.agility}), you dodged the attack!`, 'system');
-          return;
-        }
+        setIsRollingDice(true);
+        
+        setTimeout(() => {
+          setIsRollingDice(false);
+          
+          const dodgeChance = Math.min(0.3, player.stats.agility * 0.02);
+          if (Math.random() < dodgeChance) {
+            addBattleLog(`With your agility (${player.stats.agility}), you dodged the attack!`, 'system');
+            setIsPlayerTurn(true);
+            return;
+          }
 
-        const monsterRoll = rollDice();
-        const monsterDamage = calculateDamage(currentMonster.attack + monsterRoll, player.stats.vitality);
-        const newPlayerHp = Math.max(0, player.hp - monsterDamage);
-        
-        setPlayer(prev => ({ ...prev, hp: newPlayerHp, alive: newPlayerHp > 0 }));
-        addBattleLog(`${currentMonster.name} rolled ${monsterRoll} and deals ${monsterDamage} damage to you!`, 'monster');
-        
-        if (newPlayerHp <= 0) {
-          addBattleLog('You have been defeated...', 'system');
-          setTimeout(() => {
-            setGameState('defeat');
-          }, 1500);
-        }
+          const monsterRoll = rollDice();
+          const monsterDamage = calculateDamage(currentMonster.attack + monsterRoll, player.stats.vitality);
+          const newPlayerHp = Math.max(0, player.hp - monsterDamage);
+          
+          setPlayer(prev => ({ ...prev, hp: newPlayerHp, alive: newPlayerHp > 0 }));
+          addBattleLog(`${currentMonster.name} rolled ${monsterRoll} and deals ${monsterDamage} damage to you!`, 'monster');
+          
+          if (newPlayerHp <= 0) {
+            addBattleLog('You have been defeated...', 'system');
+            setTimeout(() => {
+              setGameState('defeat');
+            }, 1500);
+          } else {
+            setIsPlayerTurn(true);
+          }
+        }, 1000);
       }, 1000);
     }, 1000);
-  }, [player, currentMonster, gameState, addBattleLog, rollDice, calculateDamage]);
+  }, [player, currentMonster, gameState, isPlayerTurn, addBattleLog, rollDice, calculateDamage, handleBattleVictory]);
 
   const playerAttack = useCallback(() => {
-    if (!currentMonster || gameState !== 'battle') return;
+    if (!currentMonster || gameState !== 'battle' || !isPlayerTurn) return;
 
+    setIsPlayerTurn(false);
     setIsRollingDice(true);
+    
     setTimeout(() => {
       setIsRollingDice(false);
 
@@ -368,108 +398,61 @@ export const useGame = () => {
       addBattleLog(`You rolled ${playerRoll} and deal ${damage} damage to ${currentMonster.name}!`, 'player');
 
       if (newMonsterHp <= 0) {
-        // Monster defeated logic
-        addBattleLog(`${currentMonster.name} has been defeated!`, 'system');
-        
         const expGained = currentMonster.experienceReward + (player.level * 5);
         const baseGold = Math.floor(Math.random() * 50) + 25;
         const luckBonus = Math.floor(baseGold * (player.luck * 0.03));
         const totalGold = baseGold + luckBonus;
         
-        addBattleLog(`You gained ${expGained} experience!`, 'system');
-        addBattleLog(`You gained ${totalGold} gold!`, 'system');
-        
-        setPlayer(prev => {
-          const newExp = prev.experience + expGained;
-          let newLevel = prev.level;
-          let newExpToNext = prev.experienceToNext;
-          let newAvailablePoints = prev.availablePoints;
-          let newMaxHp = prev.maxHp;
-          let newMaxMp = prev.maxMp;
-          let newUnlockedAttacks = [...prev.unlockedSpecialAttacks];
-          let newSpecialAttackNames: string[] = [];
-          
-          if (newExp >= prev.experienceToNext) {
-            newLevel++;
-            newAvailablePoints += 3;
-            newMaxHp += 20 + (prev.stats.vitality * 10);
-            newMaxMp += 10 + (prev.stats.intelligence * 5);
-            newExpToNext = newLevel * 100;
-            
-            // Check for new special attacks
-            const availableAttacks = specialAttacks.filter(attack => 
-              attack.unlockLevel === newLevel && 
-              !newUnlockedAttacks.find(ua => ua.id === attack.id)
-            );
-            
-            if (availableAttacks.length > 0) {
-              newUnlockedAttacks = [...newUnlockedAttacks, ...availableAttacks];
-              newSpecialAttackNames = availableAttacks.map(a => a.name);
-            }
-            
-            setLevelUpData({ newLevel, availablePoints: 3, newSpecialAttacks: newSpecialAttackNames });
-            setShowLevelUpAlert(true);
-          }
-          
-          return {
-            ...prev,
-            experience: newExp,
-            level: newLevel,
-            experienceToNext: newExpToNext,
-            availablePoints: newAvailablePoints,
-            maxHp: newMaxHp,
-            maxMp: newMaxMp,
-            hp: newMaxHp, // Full heal on level up
-            mp: newMaxMp,
-            gold: prev.gold + totalGold,
-            unlockedSpecialAttacks: newUnlockedAttacks
-          };
-        });
-        
-        setTimeout(() => {
-          if (player.currentDungeon) {
-            // Check for boss battle or continue dungeon
-            if (player.dungeonDepth >= 3 && Math.random() < 0.3) {
-              // Boss battle
-              addBattleLog(`The dungeon boss ${player.currentDungeon.boss} appears!`, 'system');
-              // TODO: Implement boss battle
-            } else {
-              setGameState('dungeon');
-            }
-          } else {
-            setGameState('victory');
-          }
-        }, 2000);
+        handleBattleVictory(expGained, totalGold);
         return;
       }
 
       // Monster's turn
       setTimeout(() => {
-        // Check for dodge
-        const dodgeChance = Math.min(0.3, player.stats.agility * 0.02);
-        if (Math.random() < dodgeChance) {
-          addBattleLog(`With your agility (${player.stats.agility}), you dodged the attack!`, 'system');
-          return;
-        }
+        setIsRollingDice(true);
+        
+        setTimeout(() => {
+          setIsRollingDice(false);
+          
+          const dodgeChance = Math.min(0.3, player.stats.agility * 0.02);
+          if (Math.random() < dodgeChance) {
+            addBattleLog(`With your agility (${player.stats.agility}), you dodged the attack!`, 'system');
+            setIsPlayerTurn(true);
+            return;
+          }
 
-        const monsterRoll = rollDice();
-        const monsterDamage = calculateDamage(currentMonster.attack + monsterRoll, player.stats.vitality);
-        const newPlayerHp = Math.max(0, player.hp - monsterDamage);
-        
-        setPlayer(prev => ({ ...prev, hp: newPlayerHp, alive: newPlayerHp > 0 }));
-        addBattleLog(`${currentMonster.name} rolled ${monsterRoll} and deals ${monsterDamage} damage to you!`, 'monster');
-        
-        if (newPlayerHp <= 0) {
-          addBattleLog('You have been defeated...', 'system');
-          setTimeout(() => {
-            setGameState('defeat');
-          }, 1500);
-        }
+          const monsterRoll = rollDice();
+          const monsterDamage = calculateDamage(currentMonster.attack + monsterRoll, player.stats.vitality);
+          const newPlayerHp = Math.max(0, player.hp - monsterDamage);
+          
+          setPlayer(prev => ({ ...prev, hp: newPlayerHp, alive: newPlayerHp > 0 }));
+          addBattleLog(`${currentMonster.name} rolled ${monsterRoll} and deals ${monsterDamage} damage to you!`, 'monster');
+          
+          if (newPlayerHp <= 0) {
+            addBattleLog('You have been defeated...', 'system');
+            setTimeout(() => {
+              setGameState('defeat');
+            }, 1500);
+          } else {
+            setIsPlayerTurn(true);
+          }
+        }, 1000);
       }, 1000);
     }, 1000);
 
     updateCooldowns();
-  }, [player, currentMonster, gameState, calculateDamage, addBattleLog, rollDice, updateCooldowns]);
+  }, [player, currentMonster, gameState, isPlayerTurn, calculateDamage, addBattleLog, rollDice, updateCooldowns, handleBattleVictory]);
+
+  const closeBattleComplete = useCallback(() => {
+    setBattleComplete({ show: false, exp: 0, gold: 0 });
+    if (player.currentDungeon) {
+      setGameState('dungeon');
+    } else {
+      setGameState('menu');
+    }
+    setCurrentMonster(null);
+    setBattleLogs([]);
+  }, [player.currentDungeon]);
 
   const upgradeStats = useCallback((stat: keyof Player['stats']) => {
     if (player.availablePoints <= 0) return;
@@ -488,6 +471,7 @@ export const useGame = () => {
     setCurrentMonster(null);
     setGameState(player.currentDungeon ? 'dungeon' : 'menu');
     setBattleLogs([]);
+    setIsPlayerTurn(true);
   }, [player.currentDungeon]);
 
   const healPlayer = useCallback(() => {
@@ -526,6 +510,9 @@ export const useGame = () => {
     showLevelUpAlert,
     levelUpData,
     isRollingDice,
+    showDungeonDialog,
+    selectedDungeon,
+    battleComplete,
     startBattle,
     playerAttack,
     useSpecialAttack,
@@ -536,6 +523,8 @@ export const useGame = () => {
     useItem,
     buyItem,
     enterDungeon,
+    acceptDungeon,
+    refuseDungeon,
     dungeonBattle,
     goToShop,
     goToInventory,
@@ -545,6 +534,8 @@ export const useGame = () => {
     handleLogin,
     equipSpecialAttack,
     closeLevelUpAlert,
+    closeBattleComplete,
+    saveGame,
     updateCooldowns
   };
 };
