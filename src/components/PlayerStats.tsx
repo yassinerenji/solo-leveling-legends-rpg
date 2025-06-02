@@ -104,10 +104,10 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ player, onUpgradeStat }) => {
           
           <div className="text-sm text-gray-400 space-y-1">
             <p>• Strength: Increases attack damage</p>
-            <p>• Agility: Increases dodge chance (2% per point)</p>
+            <p>• Agility: Increases dodge chance (0.1% per point)</p>
             <p>• Intelligence: Increases MP and magic damage</p>
             <p>• Vitality: Increases HP and defense</p>
-            <p>• Luck: Increases gold and loot drops (3% per point)</p>
+            <p>• Luck: Increases gold and loot drops (1% per point)</p>
           </div>
         </div>
       </CardContent>

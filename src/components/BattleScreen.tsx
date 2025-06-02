@@ -4,8 +4,9 @@ import { Player, Monster, BattleLog } from '../types/game';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Sword, Heart, ArrowLeft, Zap, Dice6, Package } from 'lucide-react';
+import { Sword, Heart, ArrowLeft, Zap, Package } from 'lucide-react';
 import { itemEffects } from '../data/gameData';
+import EnhancedDiceRoll from './EnhancedDiceRoll';
 
 interface BattleScreenProps {
   player: Player;
@@ -17,6 +18,7 @@ interface BattleScreenProps {
   onUseItem: (item: string) => void;
   gameState: string;
   isRollingDice?: boolean;
+  diceResults?: number[];
 }
 
 const BattleScreen: React.FC<BattleScreenProps> = ({
@@ -29,6 +31,7 @@ const BattleScreen: React.FC<BattleScreenProps> = ({
   onUseItem,
   gameState,
   isRollingDice = false,
+  diceResults = [],
 }) => {
   const [showInventory, setShowInventory] = useState(false);
   
@@ -58,16 +61,32 @@ const BattleScreen: React.FC<BattleScreenProps> = ({
     setShowInventory(false);
   };
 
+  const getMonsterImage = (monster: Monster) => {
+    // Map different monster types to appropriate images
+    if (monster.type === 'dragon' || monster.name.toLowerCase().includes('dragon')) {
+      return 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=400&fit=crop&crop=center';
+    } else if (monster.type === 'beast' || monster.name.toLowerCase().includes('deer')) {
+      return 'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400&h=400&fit=crop&crop=center';
+    } else if (monster.name.toLowerCase().includes('cat') || monster.type === 'beast') {
+      return 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=400&fit=crop&crop=center';
+    } else {
+      return 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=400&h=400&fit=crop&crop=center';
+    }
+  };
+
+  const getSungJinWooImage = () => {
+    // Using a placeholder that could represent Sung Jin Woo
+    return 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=400&fit=crop&crop=center';
+  };
+
   return (
     <div className="space-y-6">
-      {/* Dice Rolling Animation */}
+      {/* Enhanced Dice Rolling Animation */}
       {isRollingDice && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-lg text-center">
-            <Dice6 className="w-16 h-16 mx-auto mb-4 text-purple-400 animate-spin" />
-            <p className="text-white text-lg">Rolling dice...</p>
-          </div>
-        </div>
+        <EnhancedDiceRoll 
+          isRolling={isRollingDice} 
+          results={diceResults} 
+        />
       )}
 
       {/* Battle Arena */}
@@ -81,8 +100,12 @@ const BattleScreen: React.FC<BattleScreenProps> = ({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center">
-              <div className="w-24 h-24 mx-auto bg-blue-600 rounded-full flex items-center justify-center mb-4 animate-pulse">
-                <span className="text-2xl">🛡️</span>
+              <div className="w-32 h-32 mx-auto rounded-lg overflow-hidden border-2 border-blue-400 shadow-lg animate-pulse">
+                <img 
+                  src={getSungJinWooImage()} 
+                  alt="Sung Jin Woo" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
             <div className="space-y-2">
@@ -111,8 +134,12 @@ const BattleScreen: React.FC<BattleScreenProps> = ({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center">
-              <div className="w-24 h-24 mx-auto bg-red-600 rounded-full flex items-center justify-center mb-4 animate-bounce">
-                <span className="text-2xl">👹</span>
+              <div className="w-32 h-32 mx-auto rounded-lg overflow-hidden border-2 border-red-400 shadow-lg animate-bounce">
+                <img 
+                  src={getMonsterImage(monster)} 
+                  alt={monster.name} 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
             <div className="space-y-2">

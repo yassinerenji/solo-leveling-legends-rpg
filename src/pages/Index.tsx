@@ -27,6 +27,7 @@ const Index = () => {
     showDungeonDialog,
     selectedDungeon,
     battleComplete,
+    diceResults,
     startBattle,
     playerAttack,
     useSpecialAttack,
@@ -68,6 +69,7 @@ const Index = () => {
             onUseItem={useItem}
             gameState={gameState}
             isRollingDice={isRollingDice}
+            diceResults={diceResults}
           />
         ) : null;
       case 'victory':

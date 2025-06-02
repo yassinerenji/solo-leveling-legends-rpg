@@ -44,6 +44,7 @@ export const useGame = () => {
   const [selectedDungeon, setSelectedDungeon] = useState<{ difficulty: 'E' | 'D' | 'C' | 'B' | 'A' | 'S', dungeon: Dungeon } | null>(null);
   const [battleComplete, setBattleComplete] = useState<{ show: boolean; exp: number; gold: number }>({ show: false, exp: 0, gold: 0 });
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
+  const [diceResults, setDiceResults] = useState<number[]>([]);
 
   // Load saved game data
   useEffect(() => {
@@ -98,6 +99,14 @@ export const useGame = () => {
     return Math.floor(Math.random() * sides) + 1;
   }, []);
 
+  const rollMultipleDice = useCallback((count: number, sides: number = 6): number[] => {
+    const results = [];
+    for (let i = 0; i < count; i++) {
+      results.push(Math.floor(Math.random() * sides) + 1);
+    }
+    return results;
+  }, []);
+
   const calculateDamage = useCallback((attacker: number, defender: number): number => {
     const baseDamage = Math.max(1, attacker - defender);
     const variance = Math.random() * 0.4 + 0.8; // 80% to 120%
@@ -118,6 +127,21 @@ export const useGame = () => {
       };
     });
   }, []);
+
+  const checkRandomDungeonEncounter = useCallback(() => {
+    // 15% chance of dungeon encounter after battle
+    if (Math.random() < 0.15) {
+      const difficulties: ('E' | 'D' | 'C' | 'B' | 'A' | 'S')[] = ['E', 'D', 'C', 'B', 'A', 'S'];
+      const availableDifficulties = difficulties.filter((_, index) => index <= Math.floor(player.level / 3));
+      const randomDifficulty = availableDifficulties[Math.floor(Math.random() * availableDifficulties.length)] || 'E';
+      const dungeon = dungeons[randomDifficulty];
+      
+      if (dungeon) {
+        setSelectedDungeon({ difficulty: randomDifficulty, dungeon });
+        setShowDungeonDialog(true);
+      }
+    }
+  }, [player.level]);
 
   const useItem = useCallback((itemName: string) => {
     const effect = itemEffects[itemName];
@@ -296,7 +320,12 @@ export const useGame = () => {
         unlockedSpecialAttacks: newUnlockedAttacks
       };
     });
-  }, []);
+
+    // Check for random dungeon encounter
+    setTimeout(() => {
+      checkRandomDungeonEncounter();
+    }, 2000);
+  }, [checkRandomDungeonEncounter]);
 
   const useSpecialAttack = useCallback(() => {
     if (!currentMonster || !player.equippedSpecialAttack || gameState !== 'battle' || !isPlayerTurn) return;
@@ -317,10 +346,16 @@ export const useGame = () => {
     setIsPlayerTurn(false);
     setIsRollingDice(true);
     
+    // Roll multiple dice for enhanced animation
+    const diceCount = 3;
+    const results = rollMultipleDice(diceCount);
+    setDiceResults(results);
+    
     setTimeout(() => {
       setIsRollingDice(false);
       
-      const damage = Math.floor(attack.damage + (player.stats.intelligence * 0.5));
+      const finalRoll = results[Math.floor(Math.random() * results.length)];
+      const damage = Math.floor(attack.damage + (player.stats.intelligence * 0.5) + finalRoll);
       const newMonsterHp = Math.max(0, currentMonster.hp - damage);
       
       setCurrentMonster(prev => prev ? { ...prev, hp: newMonsterHp } : null);
@@ -333,12 +368,12 @@ export const useGame = () => {
         }
       }));
       
-      addBattleLog(`${attack.animation} Used ${attack.name} and dealt ${damage} damage!`, 'special');
+      addBattleLog(`${attack.animation} Used ${attack.name} (rolled ${finalRoll}) and dealt ${damage} damage!`, 'special');
       
       if (newMonsterHp <= 0) {
         const expGained = currentMonster.experienceReward + (player.level * 5);
         const baseGold = Math.floor(Math.random() * 50) + 25;
-        const luckBonus = Math.floor(baseGold * (player.luck * 0.03));
+        const luckBonus = Math.floor(baseGold * (player.luck * 0.01)); // Changed from 0.03 to 0.01 (1% per point)
         const totalGold = baseGold + luckBonus;
         
         handleBattleVictory(expGained, totalGold);
@@ -348,18 +383,20 @@ export const useGame = () => {
       // Monster's turn
       setTimeout(() => {
         setIsRollingDice(true);
+        const monsterDiceResults = rollMultipleDice(2);
+        setDiceResults(monsterDiceResults);
         
         setTimeout(() => {
           setIsRollingDice(false);
           
-          const dodgeChance = Math.min(0.3, player.stats.agility * 0.02);
+          const dodgeChance = Math.min(0.3, player.stats.agility * 0.001); // Changed from 0.02 to 0.001 (0.1% per point)
           if (Math.random() < dodgeChance) {
             addBattleLog(`With your agility (${player.stats.agility}), you dodged the attack!`, 'system');
             setIsPlayerTurn(true);
             return;
           }
 
-          const monsterRoll = rollDice();
+          const monsterRoll = monsterDiceResults[Math.floor(Math.random() * monsterDiceResults.length)];
           const monsterDamage = calculateDamage(currentMonster.attack + monsterRoll, player.stats.vitality);
           const newPlayerHp = Math.max(0, player.hp - monsterDamage);
           
@@ -374,10 +411,10 @@ export const useGame = () => {
           } else {
             setIsPlayerTurn(true);
           }
-        }, 1000);
+        }, 2000);
       }, 1000);
-    }, 1000);
-  }, [player, currentMonster, gameState, isPlayerTurn, addBattleLog, rollDice, calculateDamage, handleBattleVictory]);
+    }, 2000);
+  }, [player, currentMonster, gameState, isPlayerTurn, addBattleLog, rollMultipleDice, calculateDamage, handleBattleVictory]);
 
   const playerAttack = useCallback(() => {
     if (!currentMonster || gameState !== 'battle' || !isPlayerTurn) return;
@@ -385,22 +422,27 @@ export const useGame = () => {
     setIsPlayerTurn(false);
     setIsRollingDice(true);
     
+    // Roll multiple dice for enhanced animation
+    const diceCount = 2;
+    const results = rollMultipleDice(diceCount);
+    setDiceResults(results);
+    
     setTimeout(() => {
       setIsRollingDice(false);
 
-      const playerRoll = rollDice();
-      const playerAttackPower = player.stats.strength + player.level * 2 + playerRoll;
+      const finalRoll = results[Math.floor(Math.random() * results.length)];
+      const playerAttackPower = player.stats.strength + player.level * 2 + finalRoll;
       const damage = calculateDamage(playerAttackPower, currentMonster.defense);
       
       const newMonsterHp = Math.max(0, currentMonster.hp - damage);
       setCurrentMonster(prev => prev ? { ...prev, hp: newMonsterHp } : null);
       
-      addBattleLog(`You rolled ${playerRoll} and deal ${damage} damage to ${currentMonster.name}!`, 'player');
+      addBattleLog(`You rolled ${finalRoll} and deal ${damage} damage to ${currentMonster.name}!`, 'player');
 
       if (newMonsterHp <= 0) {
         const expGained = currentMonster.experienceReward + (player.level * 5);
         const baseGold = Math.floor(Math.random() * 50) + 25;
-        const luckBonus = Math.floor(baseGold * (player.luck * 0.03));
+        const luckBonus = Math.floor(baseGold * (player.luck * 0.01)); // Changed from 0.03 to 0.01 (1% per point)
         const totalGold = baseGold + luckBonus;
         
         handleBattleVictory(expGained, totalGold);
@@ -410,18 +452,20 @@ export const useGame = () => {
       // Monster's turn
       setTimeout(() => {
         setIsRollingDice(true);
+        const monsterDiceResults = rollMultipleDice(2);
+        setDiceResults(monsterDiceResults);
         
         setTimeout(() => {
           setIsRollingDice(false);
           
-          const dodgeChance = Math.min(0.3, player.stats.agility * 0.02);
+          const dodgeChance = Math.min(0.3, player.stats.agility * 0.001); // Changed from 0.02 to 0.001 (0.1% per point)
           if (Math.random() < dodgeChance) {
             addBattleLog(`With your agility (${player.stats.agility}), you dodged the attack!`, 'system');
             setIsPlayerTurn(true);
             return;
           }
 
-          const monsterRoll = rollDice();
+          const monsterRoll = monsterDiceResults[Math.floor(Math.random() * monsterDiceResults.length)];
           const monsterDamage = calculateDamage(currentMonster.attack + monsterRoll, player.stats.vitality);
           const newPlayerHp = Math.max(0, player.hp - monsterDamage);
           
@@ -436,12 +480,12 @@ export const useGame = () => {
           } else {
             setIsPlayerTurn(true);
           }
-        }, 1000);
+        }, 2000);
       }, 1000);
-    }, 1000);
+    }, 2000);
 
     updateCooldowns();
-  }, [player, currentMonster, gameState, isPlayerTurn, calculateDamage, addBattleLog, rollDice, updateCooldowns, handleBattleVictory]);
+  }, [player, currentMonster, gameState, isPlayerTurn, calculateDamage, addBattleLog, rollMultipleDice, updateCooldowns, handleBattleVictory]);
 
   const closeBattleComplete = useCallback(() => {
     setBattleComplete({ show: false, exp: 0, gold: 0 });
@@ -513,6 +557,7 @@ export const useGame = () => {
     showDungeonDialog,
     selectedDungeon,
     battleComplete,
+    diceResults,
     startBattle,
     playerAttack,
     useSpecialAttack,
