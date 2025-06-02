@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { Player, Monster, BattleLog, Dungeon, GameState, SpecialAttack } from '../types/game';
 import { monsters, locationEnemies, dungeons, shopItems, itemEffects } from '../data/gameData';
