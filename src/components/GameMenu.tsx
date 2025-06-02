@@ -36,7 +36,7 @@ const GameMenu: React.FC<GameMenuProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <PlayerStats player={player} />
+      <PlayerStats player={player} onUpgradeStat={onUpgradeStat} />
       
       {/* Main Actions */}
       <Card className="battle-card">
@@ -150,7 +150,12 @@ const GameMenu: React.FC<GameMenuProps> = ({
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {monsters.slice(0, 6).map((monster) => (
-              <MonsterCard key={monster.id} monster={monster} />
+              <MonsterCard 
+                key={monster.id} 
+                monster={monster} 
+                onFight={() => {}} 
+                disabled={true}
+              />
             ))}
           </div>
         </CardContent>
