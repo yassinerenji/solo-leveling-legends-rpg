@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { Player, Monster, BattleLog, Dungeon, GameState, SpecialAttack } from '../types/game';
 import { monsters, locationEnemies, dungeons, shopItems, itemEffects } from '../data/gameData';
@@ -314,8 +315,7 @@ export const useGame = () => {
         availablePoints: newAvailablePoints,
         maxHp: newMaxHp,
         maxMp: newMaxMp,
-        hp: newMaxHp,
-        mp: newMaxMp,
+        // Removed the auto-heal: hp: newMaxHp, mp: newMaxMp
         gold: prev.gold + goldGained,
         unlockedSpecialAttacks: newUnlockedAttacks
       };
@@ -346,15 +346,15 @@ export const useGame = () => {
     setIsPlayerTurn(false);
     setIsRollingDice(true);
     
-    // Roll multiple dice for enhanced animation
-    const diceCount = 3;
+    // Roll only one die for enhanced animation
+    const diceCount = 1;
     const results = rollMultipleDice(diceCount);
     setDiceResults(results);
     
     setTimeout(() => {
       setIsRollingDice(false);
       
-      const finalRoll = results[Math.floor(Math.random() * results.length)];
+      const finalRoll = results[0];
       const damage = Math.floor(attack.damage + (player.stats.intelligence * 0.5) + finalRoll);
       const newMonsterHp = Math.max(0, currentMonster.hp - damage);
       
@@ -383,7 +383,7 @@ export const useGame = () => {
       // Monster's turn
       setTimeout(() => {
         setIsRollingDice(true);
-        const monsterDiceResults = rollMultipleDice(2);
+        const monsterDiceResults = rollMultipleDice(1);
         setDiceResults(monsterDiceResults);
         
         setTimeout(() => {
@@ -396,7 +396,7 @@ export const useGame = () => {
             return;
           }
 
-          const monsterRoll = monsterDiceResults[Math.floor(Math.random() * monsterDiceResults.length)];
+          const monsterRoll = monsterDiceResults[0];
           const monsterDamage = calculateDamage(currentMonster.attack + monsterRoll, player.stats.vitality);
           const newPlayerHp = Math.max(0, player.hp - monsterDamage);
           
@@ -422,15 +422,15 @@ export const useGame = () => {
     setIsPlayerTurn(false);
     setIsRollingDice(true);
     
-    // Roll multiple dice for enhanced animation
-    const diceCount = 2;
+    // Roll only one die for enhanced animation
+    const diceCount = 1;
     const results = rollMultipleDice(diceCount);
     setDiceResults(results);
     
     setTimeout(() => {
       setIsRollingDice(false);
 
-      const finalRoll = results[Math.floor(Math.random() * results.length)];
+      const finalRoll = results[0];
       const playerAttackPower = player.stats.strength + player.level * 2 + finalRoll;
       const damage = calculateDamage(playerAttackPower, currentMonster.defense);
       
@@ -452,7 +452,7 @@ export const useGame = () => {
       // Monster's turn
       setTimeout(() => {
         setIsRollingDice(true);
-        const monsterDiceResults = rollMultipleDice(2);
+        const monsterDiceResults = rollMultipleDice(1);
         setDiceResults(monsterDiceResults);
         
         setTimeout(() => {
@@ -465,7 +465,7 @@ export const useGame = () => {
             return;
           }
 
-          const monsterRoll = monsterDiceResults[Math.floor(Math.random() * monsterDiceResults.length)];
+          const monsterRoll = monsterDiceResults[0];
           const monsterDamage = calculateDamage(currentMonster.attack + monsterRoll, player.stats.vitality);
           const newPlayerHp = Math.max(0, player.hp - monsterDamage);
           
