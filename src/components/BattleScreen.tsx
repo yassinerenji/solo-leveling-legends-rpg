@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Player, Monster, BattleLog } from '../types/game';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,10 +64,8 @@ const BattleScreen: React.FC<BattleScreenProps> = ({
     // Map different monster types to appropriate images
     if (monster.type === 'dragon' || monster.name.toLowerCase().includes('dragon')) {
       return 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=400&fit=crop&crop=center';
-    } else if (monster.type === 'beast' || monster.name.toLowerCase().includes('deer')) {
+    } else if (monster.type === 'beast' || monster.name.toLowerCase().includes('deer') || monster.name.toLowerCase().includes('cat')) {
       return 'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400&h=400&fit=crop&crop=center';
-    } else if (monster.name.toLowerCase().includes('cat') || monster.type === 'beast') {
-      return 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=400&fit=crop&crop=center';
     } else {
       return 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=400&h=400&fit=crop&crop=center';
     }
