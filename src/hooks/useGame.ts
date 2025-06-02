@@ -20,7 +20,7 @@ const createInitialPlayer = (name: string): Player => ({
   },
   availablePoints: 0,
   rank: 'E-Rank',
-  gold: 500,
+  gold: 0,
   inventory: ['Small Potion', 'Small Potion'],
   location: 'home',
   alive: true,
@@ -288,8 +288,8 @@ export const useGame = () => {
       if (newExp >= prev.experienceToNext) {
         newLevel++;
         newAvailablePoints += 3;
-        newMaxHp += 20 + (prev.stats.vitality * 10);
-        newMaxMp += 10 + (prev.stats.intelligence * 5);
+        newMaxHp += 20; // Only 20 HP per level
+        // MP stays the same - only increases with intelligence upgrades
         newExpToNext = newLevel * 100;
         
         const availableAttacks = specialAttacks.filter(attack => 
@@ -501,14 +501,24 @@ export const useGame = () => {
   const upgradeStats = useCallback((stat: keyof Player['stats']) => {
     if (player.availablePoints <= 0) return;
     
-    setPlayer(prev => ({
-      ...prev,
-      stats: {
+    setPlayer(prev => {
+      const newStats = {
         ...prev.stats,
         [stat]: prev.stats[stat] + 1,
-      },
-      availablePoints: prev.availablePoints - 1,
-    }));
+      };
+      
+      // Only increase MP when intelligence is upgraded
+      const newMaxMp = stat === 'intelligence' ? prev.maxMp + 10 : prev.maxMp;
+      const newMp = stat === 'intelligence' ? prev.mp + 10 : prev.mp;
+      
+      return {
+        ...prev,
+        stats: newStats,
+        availablePoints: prev.availablePoints - 1,
+        maxMp: newMaxMp,
+        mp: newMp,
+      };
+    });
   }, [player.availablePoints]);
 
   const resetBattle = useCallback(() => {

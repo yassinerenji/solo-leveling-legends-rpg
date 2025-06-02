@@ -1,128 +1,196 @@
 
-import { Monster, Dungeon, ShopItem, ItemEffect } from '../types/game';
+import { Monster, Dungeon, ShopItem } from '../types/game';
 
 export const monsters: Monster[] = [
-  // Forest enemies
+  {
+    id: 'goblin',
+    name: 'Goblin',
+    level: 2, // Increased from 1
+    hp: 40, // Increased from 25
+    maxHp: 40,
+    attack: 12, // Increased from 8
+    defense: 4, // Increased from 2
+    experienceReward: 20, // Increased from 15
+    description: 'A weak creature lurking in dungeons',
+    type: 'beast'
+  },
   {
     id: 'wolf',
-    name: 'Wolf',
-    level: 1,
-    hp: 25,
-    maxHp: 25,
-    attack: 8,
-    defense: 2,
-    experienceReward: 15,
-    description: 'A wild wolf lurking in the forest',
+    name: 'Forest Wolf',
+    level: 3,
+    hp: 60,
+    maxHp: 60,
+    attack: 15,
+    defense: 6,
+    experienceReward: 25,
+    description: 'A fierce predator of the forest',
     type: 'beast'
   },
   {
-    id: 'giant_spider',
-    name: 'Giant Spider',
-    level: 2,
-    hp: 30,
-    maxHp: 30,
-    attack: 10,
-    defense: 3,
-    experienceReward: 20,
-    description: 'A large venomous spider',
+    id: 'orc',
+    name: 'Orc Warrior',
+    level: 4, // Increased from 3
+    hp: 80, // Increased from 60
+    maxHp: 80,
+    attack: 22, // Increased from 18
+    defense: 10, // Increased from 8
+    experienceReward: 50, // Increased from 45
+    description: 'A brutish warrior with crude weapons',
     type: 'beast'
   },
-  // Dungeon enemies
+  {
+    id: 'bat',
+    name: 'Cave Bat',
+    level: 3,
+    hp: 45,
+    maxHp: 45,
+    attack: 18,
+    defense: 3,
+    experienceReward: 30,
+    description: 'A swift flying creature from dark caves',
+    type: 'beast'
+  },
+  {
+    id: 'spider',
+    name: 'Giant Spider',
+    level: 4,
+    hp: 70,
+    maxHp: 70,
+    attack: 20,
+    defense: 8,
+    experienceReward: 40,
+    description: 'A venomous spider lurking in cave corners',
+    type: 'beast'
+  },
+  {
+    id: 'golem',
+    name: 'Stone Golem',
+    level: 6,
+    hp: 120,
+    maxHp: 120,
+    attack: 25,
+    defense: 18,
+    experienceReward: 80,
+    description: 'A massive creature made of mountain stone',
+    type: 'beast'
+  },
+  {
+    id: 'troll',
+    name: 'Mountain Troll',
+    level: 7,
+    hp: 150,
+    maxHp: 150,
+    attack: 30,
+    defense: 15,
+    experienceReward: 100,
+    description: 'A huge troll that lives in mountain caves',
+    type: 'beast'
+  },
+  {
+    id: 'scorpion',
+    name: 'Desert Scorpion',
+    level: 5,
+    hp: 90,
+    maxHp: 90,
+    attack: 24,
+    defense: 12,
+    experienceReward: 65,
+    description: 'A deadly scorpion with poisonous sting',
+    type: 'beast'
+  },
+  {
+    id: 'snake',
+    name: 'Sand Viper',
+    level: 4,
+    hp: 65,
+    maxHp: 65,
+    attack: 22,
+    defense: 6,
+    experienceReward: 45,
+    description: 'A venomous snake that burrows in sand',
+    type: 'beast'
+  },
   {
     id: 'skeleton',
     name: 'Skeleton Soldier',
-    level: 5,
-    hp: 80,
-    maxHp: 80,
-    attack: 25,
-    defense: 12,
-    experienceReward: 75,
+    level: 6, // Increased from 5
+    hp: 100, // Increased from 80
+    maxHp: 100,
+    attack: 30, // Increased from 25
+    defense: 15, // Increased from 12
+    experienceReward: 85, // Increased from 75
     description: 'Reanimated bones seeking vengeance',
     type: 'undead'
   },
   {
-    id: 'zombie',
-    name: 'Zombie',
-    level: 4,
-    hp: 60,
-    maxHp: 60,
-    attack: 18,
-    defense: 8,
-    experienceReward: 50,
-    description: 'A shambling undead creature',
-    type: 'undead'
+    id: 'demon',
+    name: 'Lesser Demon',
+    level: 10, // Increased from 8
+    hp: 200, // Increased from 150
+    maxHp: 200,
+    attack: 50, // Increased from 40
+    defense: 25, // Increased from 20
+    experienceReward: 180, // Increased from 150
+    description: 'A creature from the demon realm',
+    type: 'demon'
   },
-  // Beach enemies
   {
-    id: 'giant_crab',
-    name: 'Giant Crab',
-    level: 8,
-    hp: 120,
-    maxHp: 120,
-    attack: 35,
-    defense: 18,
-    experienceReward: 120,
-    description: 'A massive sea creature with powerful claws',
-    type: 'beast'
-  },
-  // Mountain enemies
-  {
-    id: 'young_dragon',
+    id: 'dragon',
     name: 'Young Dragon',
-    level: 15,
-    hp: 400,
-    maxHp: 400,
-    attack: 80,
-    defense: 35,
-    experienceReward: 500,
+    level: 18, // Increased from 15
+    hp: 500, // Increased from 400
+    maxHp: 500,
+    attack: 100, // Increased from 80
+    defense: 45, // Increased from 35
+    experienceReward: 600, // Increased from 500
     description: 'A fearsome dragon with devastating power',
     type: 'dragon'
   }
 ];
 
 export const locationEnemies: Record<string, string[]> = {
-  forest: ['wolf', 'giant_spider'],
-  dungeon: ['skeleton', 'zombie'],
-  beach: ['giant_crab'],
-  mountain: ['young_dragon']
+  forest: ['goblin', 'wolf'],
+  cave: ['bat', 'spider', 'skeleton'],
+  mountain: ['golem', 'troll', 'orc'],
+  desert: ['scorpion', 'snake', 'demon']
 };
 
 export const dungeons: Record<string, Dungeon> = {
   E: {
     difficulty: 'E',
-    enemies: ['Cave Rat', 'Bat', 'Poisonous Mushroom'],
-    boss: 'Rat King',
+    enemies: ['Goblin Scout', 'Cave Rat'],
+    boss: 'Goblin Chief',
     reward: 100
   },
   D: {
     difficulty: 'D',
-    enemies: ['Skeleton', 'Weak Zombie', 'Spider'],
-    boss: 'Giant Skeleton',
-    reward: 200
+    enemies: ['Orc Warrior', 'Stone Golem'],
+    boss: 'Orc Chieftain',
+    reward: 250
   },
   C: {
     difficulty: 'C',
-    enemies: ['Ghoul', 'Ghost', 'Novice Wizard'],
+    enemies: ['Skeleton Knight', 'Dark Mage'],
     boss: 'Lich',
-    reward: 350
+    reward: 500
   },
   B: {
     difficulty: 'B',
-    enemies: ['Mummy', 'Werewolf', 'Dark Wizard'],
-    boss: 'Royal Mummy',
-    reward: 550
+    enemies: ['Greater Demon', 'Fire Elemental'],
+    boss: 'Demon Lord',
+    reward: 1000
   },
   A: {
     difficulty: 'A',
-    enemies: ['Vampire', 'Golem', 'Grand Wizard'],
-    boss: 'Vampire Lord',
-    reward: 800
+    enemies: ['Ancient Dragon', 'Shadow Beast'],
+    boss: 'Elder Dragon',
+    reward: 2500
   },
   S: {
     difficulty: 'S',
-    enemies: ['Black Dragon', 'Demon', 'Dark Sorcerer'],
+    enemies: ['Arch Demon', 'Void Walker'],
     boss: 'Demon King',
-    reward: 1200
+    reward: 5000
   }
 };
 
@@ -131,71 +199,67 @@ export const shopItems: ShopItem[] = [
     id: 'small_potion',
     name: 'Small Potion',
     price: 50,
-    description: 'Restores 30 HP',
-    effect: { heal: 30 }
+    description: 'Restores 50 HP',
+    effect: { heal: 50 }
   },
   {
     id: 'medium_potion',
     name: 'Medium Potion',
-    price: 90,
-    description: 'Restores 70 HP',
-    effect: { heal: 70 }
+    price: 100,
+    description: 'Restores 100 HP',
+    effect: { heal: 100 }
   },
   {
     id: 'large_potion',
     name: 'Large Potion',
-    price: 140,
-    description: 'Restores 120 HP',
-    effect: { heal: 120 }
+    price: 200,
+    description: 'Restores 200 HP',
+    effect: { heal: 200 }
   },
   {
-    id: 'sharp_sword',
-    name: 'Sharp Sword',
-    price: 100,
-    description: '+1 Attack permanently',
-    effect: { attack: 1 }
+    id: 'strength_elixir',
+    name: 'Strength Elixir',
+    price: 500,
+    description: 'Permanently increases attack by 5',
+    effect: { attack: 5 }
   },
   {
-    id: 'sturdy_armor',
-    name: 'Sturdy Armor',
-    price: 100,
-    description: '+1 Defense permanently',
-    effect: { defense: 1 }
+    id: 'defense_potion',
+    name: 'Defense Potion',
+    price: 500,
+    description: 'Permanently increases defense by 5',
+    effect: { defense: 5 }
+  },
+  {
+    id: 'lucky_charm',
+    name: 'Lucky Charm',
+    price: 300,
+    description: 'Permanently increases luck by 3',
+    effect: { luck: 3 }
+  },
+  {
+    id: 'agility_boost',
+    name: 'Agility Boost',
+    price: 400,
+    description: 'Permanently increases agility by 3',
+    effect: { agility: 3 }
   },
   {
     id: 'teleport_stone',
     name: 'Teleport Stone',
-    price: 300,
+    price: 150,
     description: 'Escape from dungeons instantly',
     effect: { teleport: true }
-  },
-  {
-    id: 'luck_ring',
-    name: 'Luck Ring',
-    price: 150,
-    description: '+1 Luck permanently',
-    effect: { luck: 1 }
-  },
-  {
-    id: 'speed_bracelet',
-    name: 'Speed Bracelet',
-    price: 180,
-    description: '+1 Agility permanently',
-    effect: { agility: 1 }
   }
 ];
 
-export const itemEffects: Record<string, ItemEffect> = {
-  'Small Potion': { heal: 30 },
-  'Medium Potion': { heal: 70 },
-  'Large Potion': { heal: 120 },
-  'Sharp Sword': { attack: 1 },
-  'Sturdy Armor': { defense: 1 },
-  'Teleport Stone': { teleport: true },
-  'Luck Ring': { luck: 1 },
-  'Speed Bracelet': { agility: 1 },
-  'Legendary Sword': { attack: 5 },
-  'Hero Armor': { defense: 5 },
-  'Ultimate Legendary Sword': { attack: 15 },
-  'Legendary Hero Armor': { defense: 15 }
+export const itemEffects: Record<string, any> = {
+  'Small Potion': { heal: 50 },
+  'Medium Potion': { heal: 100 },
+  'Large Potion': { heal: 200 },
+  'Strength Elixir': { attack: 5 },
+  'Defense Potion': { defense: 5 },
+  'Lucky Charm': { luck: 3 },
+  'Agility Boost': { agility: 3 },
+  'Teleport Stone': { teleport: true }
 };
